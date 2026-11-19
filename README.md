@@ -33,8 +33,14 @@ Trên Haiku, phím **Cmd** mặc định là phím **Alt** trên bàn phím PC.
 
 ## Yêu cầu
 
-- Haiku OS (R1/beta trở lên, bản x86_64).
-- Trình biên dịch GCC và `makefile-engine` của Haiku. Nếu lệnh `make` báo không tìm thấy `makefile-engine`, cài gói phát triển bằng `pkgman`.
+- Haiku OS 64-bit (x86_64), khuyến nghị R1/beta6 trở lên. Chạy trên máy thật hoặc máy ảo đều được.
+- Bộ công cụ build: `gcc`, `binutils`, `make`, `haiku_devel`, `makefile_engine`. Bản cài chuẩn của Haiku thường có sẵn; nếu thiếu thì cài bằng:
+
+  ```sh
+  pkgman install gcc binutils make haiku_devel makefile_engine
+  ```
+
+Chưa có Haiku? Xem **[CAI_DAT_HAIKU_VIRTUALBOX.md](CAI_DAT_HAIKU_VIRTUALBOX.md)**: hướng dẫn từng bước cài Haiku vào VirtualBox trên Windows, cài các gói cần thiết, build app, và (tuỳ chọn) bật SSH để build từ Windows.
 
 ## Build và chạy
 
@@ -53,6 +59,15 @@ Mở luôn một file:
 
 File chạy nằm trong thư mục `objects.<kiến trúc>-<trình biên dịch>-release/`, ví dụ `objects.x86_64-cc13-release/HaikuNotepad`.
 
+### Viết code trên Windows, build trên Haiku qua SSH
+
+Nếu bạn soạn code trên máy khác và đã khai báo tên `haiku` trong `~/.ssh/config` (máy Haiku cùng mạng LAN, hoặc máy ảo VirtualBox như mục 8 của [CAI_DAT_HAIKU_VIRTUALBOX.md](CAI_DAT_HAIKU_VIRTUALBOX.md)):
+
+```sh
+ssh haiku "mkdir -p ~/HaikuNotepad"
+scp App.cpp EditorWindow.h EditorWindow.cpp EditorTextView.h EditorTextView.cpp Makefile haiku:~/HaikuNotepad/
+ssh haiku "cd ~/HaikuNotepad && make"
+```
 
 Ứng dụng có giao diện đồ hoạ nên phải mở trực tiếp trên màn hình máy Haiku để dùng thử.
 
@@ -66,6 +81,7 @@ File chạy nằm trong thư mục `objects.<kiến trúc>-<trình biên dịch>
 | `Makefile` | Cấu hình build theo `makefile-engine` của Haiku. |
 | `CLAUDE.md` | Ghi chú bối cảnh dự án cho trợ lý AI. |
 | `GIAI_THICH_MA_NGUON.md` | Giải thích chi tiết luồng hoạt động, chức năng và cách code vận hành. |
+| `CAI_DAT_HAIKU_VIRTUALBOX.md` | Hướng dẫn cài Haiku vào VirtualBox và cài các gói để build. |
 
 Muốn hiểu code chạy thế nào, đọc [GIAI_THICH_MA_NGUON.md](GIAI_THICH_MA_NGUON.md).
 
