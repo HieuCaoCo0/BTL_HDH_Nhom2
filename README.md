@@ -53,15 +53,6 @@ Mở luôn một file:
 
 File chạy nằm trong thư mục `objects.<kiến trúc>-<trình biên dịch>-release/`, ví dụ `objects.x86_64-cc13-release/HaikuNotepad`.
 
-### Viết code trên Windows, build trên Haiku qua SSH
-
-Nếu bạn soạn code trên máy khác và máy Haiku nằm cùng mạng LAN (đã khai báo tên `haiku` trong `~/.ssh/config`):
-
-```sh
-ssh haiku "mkdir -p ~/HaikuNotepad"
-scp App.cpp EditorWindow.h EditorWindow.cpp EditorTextView.h EditorTextView.cpp Makefile haiku:~/HaikuNotepad/
-ssh haiku "cd ~/HaikuNotepad && make"
-```
 
 Ứng dụng có giao diện đồ hoạ nên phải mở trực tiếp trên màn hình máy Haiku để dùng thử.
 
