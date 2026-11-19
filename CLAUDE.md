@@ -9,12 +9,14 @@
 
 ## Cấu trúc
 - `App.cpp` — `BApplication`, nhận file từ dòng lệnh/Tracker.
-- `EditorWindow.h/.cpp` — cửa sổ chính: menu, `BTextView`, mở/lưu file, hỏi khi chưa lưu.
+- `EditorWindow.h/.cpp` — cửa sổ chính: menu, mở/lưu file, hỏi khi chưa lưu.
+- `EditorTextView.h/.cpp` — vùng soạn thảo (kế thừa `BTextView`): báo thay đổi cho cửa sổ,
+  undo/redo nhiều bước tự quản lý (đã tắt undo một bước có sẵn của `BTextView`).
 - `Makefile` — dùng makefile-engine của Haiku.
 
 ## Build và test (qua SSH vào máy Haiku)
 - Kiểm tra kết nối: `ssh haiku "uname -a"` (phải ra chữ Haiku).
-- Đồng bộ code sang Haiku: `ssh haiku "mkdir -p ~/SimpleEdit"` rồi `scp -r App.cpp EditorWindow.h EditorWindow.cpp Makefile haiku:~/SimpleEdit/`
+- Đồng bộ code sang Haiku: `ssh haiku "mkdir -p ~/SimpleEdit"` rồi `scp -r App.cpp EditorWindow.h EditorWindow.cpp EditorTextView.h EditorTextView.cpp Makefile haiku:~/SimpleEdit/`
 - Build: `ssh haiku "cd ~/SimpleEdit && make"`
 - Sau mỗi lần sửa code, luôn build lại và đọc lỗi biên dịch trước khi báo xong.
 - File chạy nằm trong thư mục `objects.*` (ví dụ `objects.x86_64-cc13-release/SimpleEdit`).

@@ -14,9 +14,10 @@
 #include <NodeInfo.h>
 #include <ScrollView.h>
 #include <String.h>
-#include <TextView.h>
 
 #include <string.h>
+
+#include "EditorTextView.h"
 
 
 enum {
@@ -31,42 +32,14 @@ enum {
 static const off_t kMaxFileSize = 64 * 1024 * 1024;
 
 
-// BTextView không tự báo khi nội dung thay đổi, nên ta kế thừa và
-// ghi đè InsertText/DeleteText để báo cho cửa sổ biết.
-class EditorTextView : public BTextView {
-public:
-	EditorTextView(const char* name, EditorWindow* owner)
-		:
-		BTextView(name),
-		fOwner(owner)
-	{
-	}
-
-protected:
-	virtual void InsertText(const char* text, int32 length, int32 offset,
-		const text_run_array* runs)
-	{
-		BTextView::InsertText(text, length, offset, runs);
-		fOwner->TextChanged();
-	}
-
-	virtual void DeleteText(int32 fromOffset, int32 toOffset)
-	{
-		BTextView::DeleteText(fromOffset, toOffset);
-		fOwner->TextChanged();
-	}
-
-private:
-	EditorWindow*	fOwner;
-};
-
-
 EditorWindow::EditorWindow(BRect frame)
 	:
 	BWindow(frame, "SimpleEdit", B_DOCUMENT_WINDOW,
 		B_ASYNCHRONOUS_CONTROLS | B_AUTO_UPDATE_SIZE_LIMITS),
 	fTextView(NULL),
 	fScrollView(NULL),
+	fUndoItem(NULL),
+	fRedoItem(NULL),
 	fWrapItem(NULL),
 	fOpenPanel(NULL),
 	fSavePanel(NULL),
@@ -89,7 +62,11 @@ EditorWindow::EditorWindow(BRect frame)
 	menuBar->AddItem(fileMenu);
 
 	BMenu* editMenu = new BMenu("Sửa");
-	editMenu->AddItem(new BMenuItem("Hoàn tác", new BMessage(B_UNDO), 'Z'));
+	fUndoItem = new BMenuItem("Hoàn tác", new BMessage(B_UNDO), 'Z');
+	editMenu->AddItem(fUndoItem);
+	fRedoItem = new BMenuItem("Làm lại", new BMessage(B_REDO), 'Z',
+		B_SHIFT_KEY);
+	editMenu->AddItem(fRedoItem);
 	editMenu->AddSeparatorItem();
 	editMenu->AddItem(new BMenuItem("Cắt", new BMessage(B_CUT), 'X'));
 	editMenu->AddItem(new BMenuItem("Sao chép", new BMessage(B_COPY), 'C'));
@@ -108,7 +85,8 @@ EditorWindow::EditorWindow(BRect frame)
 	// --- Vùng soạn thảo ---
 	fTextView = new EditorTextView("text", this);
 	fTextView->SetStylable(false);		// chỉ văn bản thuần
-	fTextView->SetDoesUndo(true);
+	// Undo/redo nhiều bước do EditorTextView tự quản lý (đã tắt undo
+	// một bước có sẵn của BTextView)
 	fTextView->SetWordWrap(true);
 	fTextView->SetInsets(4, 4, 4, 4);
 	fTextView->SetFontAndColor(be_fixed_font);	// font đều nét, hợp để code
@@ -121,8 +99,8 @@ EditorWindow::EditorWindow(BRect frame)
 		.Add(menuBar)
 		.Add(fScrollView);
 
-	// Các lệnh Sửa gửi thẳng tới text view (BTextView tự xử lý
-	// B_UNDO, B_CUT, B_COPY, B_PASTE, B_SELECT_ALL).
+	// Các lệnh Sửa gửi thẳng tới text view (EditorTextView xử lý
+	// B_UNDO, B_REDO; BTextView xử lý B_CUT, B_COPY, B_PASTE, B_SELECT_ALL).
 	// Phải gọi sau khi text view đã được gắn vào cửa sổ.
 	editMenu->SetTargetForItems(fTextView);
 
@@ -216,6 +194,17 @@ EditorWindow::MessageReceived(BMessage* message)
 }
 
 
+// Được gọi khi mở menu, và cả khi bấm phím tắt có Cmd (trước khi tìm phím
+// tắt), nên mục Hoàn tác/Làm lại luôn đúng trạng thái.
+void
+EditorWindow::MenusBeginning()
+{
+	fUndoItem->SetEnabled(fTextView->CanUndo());
+	fRedoItem->SetEnabled(fTextView->CanRedo());
+	BWindow::MenusBeginning();
+}
+
+
 bool
 EditorWindow::QuitRequested()
 {
@@ -254,6 +243,7 @@ EditorWindow::_LoadFile(const entry_ref& ref)
 		return B_NO_MEMORY;
 
 	fTextView->SetText(&file, 0, (int32)size);
+	fTextView->ClearUndoHistory();	// lịch sử của tài liệu cũ không còn đúng
 	fTextView->Select(0, 0);
 	fTextView->ScrollToSelection();
 
@@ -362,6 +352,7 @@ void
 EditorWindow::_NewDocument()
 {
 	fTextView->SetText("");
+	fTextView->ClearUndoHistory();
 	fHasRef = false;
 	fModified = false;
 	_UpdateTitle();

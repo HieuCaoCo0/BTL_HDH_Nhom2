@@ -16,6 +16,7 @@ public:
 	virtual					~EditorWindow();
 
 	virtual	void			MessageReceived(BMessage* message);
+	virtual	void			MenusBeginning();
 	virtual	bool			QuitRequested();
 
 			// EditorTextView gọi hàm này mỗi khi nội dung thay đổi
@@ -34,6 +35,8 @@ private:
 
 			EditorTextView*	fTextView;
 			BScrollView*	fScrollView;
+			BMenuItem*		fUndoItem;
+			BMenuItem*		fRedoItem;
 			BMenuItem*		fWrapItem;
 			BFilePanel*		fOpenPanel;
 			BFilePanel*		fSavePanel;

@@ -5,7 +5,7 @@ NAME = SimpleEdit
 TYPE = APP
 APP_MIME_SIG = application/x-vnd.ptit-SimpleEdit
 
-SRCS = App.cpp EditorWindow.cpp
+SRCS = App.cpp EditorWindow.cpp EditorTextView.cpp
 RDEFS =
 RSRCS =
 
