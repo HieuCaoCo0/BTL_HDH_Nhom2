@@ -59,15 +59,6 @@ Mở luôn một file:
 
 File chạy nằm trong thư mục `objects.<kiến trúc>-<trình biên dịch>-release/`, ví dụ `objects.x86_64-cc13-release/HaikuNotepad`.
 
-### Viết code trên Windows, build trên Haiku qua SSH
-
-Nếu bạn soạn code trên máy khác và đã khai báo tên `haiku` trong `~/.ssh/config` (máy Haiku cùng mạng LAN, hoặc máy ảo VirtualBox như mục 8 của [CAI_DAT_HAIKU_VIRTUALBOX.md](CAI_DAT_HAIKU_VIRTUALBOX.md)):
-
-```sh
-ssh haiku "mkdir -p ~/HaikuNotepad"
-scp App.cpp EditorWindow.h EditorWindow.cpp EditorTextView.h EditorTextView.cpp Makefile haiku:~/HaikuNotepad/
-ssh haiku "cd ~/HaikuNotepad && make"
-```
 
 Ứng dụng có giao diện đồ hoạ nên phải mở trực tiếp trên màn hình máy Haiku để dùng thử.
 
@@ -79,7 +70,6 @@ ssh haiku "cd ~/HaikuNotepad && make"
 | `EditorWindow.h/.cpp` | Cửa sổ chính: menu, mở/lưu file, tiêu đề, hỏi khi chưa lưu. |
 | `EditorTextView.h/.cpp` | Vùng soạn thảo (kế thừa `BTextView`): báo thay đổi cho cửa sổ, hoàn tác/làm lại nhiều bước. |
 | `Makefile` | Cấu hình build theo `makefile-engine` của Haiku. |
-| `CLAUDE.md` | Ghi chú bối cảnh dự án cho trợ lý AI. |
 | `GIAI_THICH_MA_NGUON.md` | Giải thích chi tiết luồng hoạt động, chức năng và cách code vận hành. |
 | `CAI_DAT_HAIKU_VIRTUALBOX.md` | Hướng dẫn cài Haiku vào VirtualBox và cài các gói để build. |
 
