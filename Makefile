@@ -1,9 +1,9 @@
-## Makefile cho SimpleEdit, dùng makefile-engine của Haiku
-## Build: make        Chạy: ./objects.*/SimpleEdit
+## Makefile cho Haiku Notepad, dùng makefile-engine của Haiku
+## Build: make        Chạy: ./objects.*/HaikuNotepad
 
-NAME = SimpleEdit
+NAME = HaikuNotepad
 TYPE = APP
-APP_MIME_SIG = application/x-vnd.ptit-SimpleEdit
+APP_MIME_SIG = application/x-vnd.ptit-HaikuNotepad
 
 SRCS = App.cpp EditorWindow.cpp EditorTextView.cpp
 RDEFS =

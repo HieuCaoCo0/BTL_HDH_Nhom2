@@ -1,4 +1,4 @@
-# SimpleEdit — trình soạn thảo văn bản cho Haiku OS
+# Haiku Notepad — trình soạn thảo văn bản cho Haiku OS
 
 ## Bối cảnh
 - Ứng dụng native cho **Haiku OS** (không phải Linux/Windows), viết bằng **C++ và BeAPI**.
@@ -13,13 +13,15 @@
 - `EditorTextView.h/.cpp` — vùng soạn thảo (kế thừa `BTextView`): báo thay đổi cho cửa sổ,
   undo/redo nhiều bước tự quản lý (đã tắt undo một bước có sẵn của `BTextView`).
 - `Makefile` — dùng makefile-engine của Haiku.
+- `README.md` — giới thiệu, chức năng, cách build. `GIAI_THICH_MA_NGUON.md` — giải thích luồng hoạt động
+  và cách code vận hành; cập nhật hai file này khi thêm/đổi chức năng.
 
 ## Build và test (qua SSH vào máy Haiku)
 - Kiểm tra kết nối: `ssh haiku "uname -a"` (phải ra chữ Haiku).
-- Đồng bộ code sang Haiku: `ssh haiku "mkdir -p ~/SimpleEdit"` rồi `scp -r App.cpp EditorWindow.h EditorWindow.cpp EditorTextView.h EditorTextView.cpp Makefile haiku:~/SimpleEdit/`
-- Build: `ssh haiku "cd ~/SimpleEdit && make"`
+- Đồng bộ code sang Haiku: `ssh haiku "mkdir -p ~/HaikuNotepad"` rồi `scp -r App.cpp EditorWindow.h EditorWindow.cpp EditorTextView.h EditorTextView.cpp Makefile haiku:~/HaikuNotepad/`
+- Build: `ssh haiku "cd ~/HaikuNotepad && make"`
 - Sau mỗi lần sửa code, luôn build lại và đọc lỗi biên dịch trước khi báo xong.
-- File chạy nằm trong thư mục `objects.*` (ví dụ `objects.x86_64-cc13-release/SimpleEdit`).
+- File chạy nằm trong thư mục `objects.*` (ví dụ `objects.x86_64-cc13-release/HaikuNotepad`).
 - Không chạy được app GUI qua SSH để xem giao diện; người dùng sẽ tự mở trên Haiku để kiểm tra.
 
 ## Quy ước code

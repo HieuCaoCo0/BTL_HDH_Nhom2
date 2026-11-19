@@ -1,4 +1,12 @@
-// EditorWindow.cpp - Cửa sổ chính của trình soạn thảo SimpleEdit
+// EditorWindow.cpp - Cửa sổ chính của trình soạn thảo Haiku Notepad
+//
+// Trên Haiku, mỗi BWindow chạy trên một luồng (thread) riêng và xử lý lần
+// lượt các tin nhắn (BMessage) trong hàng đợi của nó. Bấm menu, chọn file
+// trong hộp thoại, kéo file vào... đều sinh ra tin nhắn, và cửa sổ phản ứng
+// trong MessageReceived(). Vì chỉ một luồng xử lý, không cần khoá dữ liệu.
+//
+// Cửa sổ này lo phần "tài liệu": menu, mở/lưu file, tiêu đề, hỏi khi chưa
+// lưu. Phần soạn thảo và hoàn tác nằm trong EditorTextView.
 #include "EditorWindow.h"
 
 #include <Alert.h>
@@ -20,6 +28,9 @@
 #include "EditorTextView.h"
 
 
+// Mã của các tin nhắn riêng do menu gửi tới cửa sổ. Haiku quy ước mã là
+// 4 ký tự, viết thường để không trùng mã hệ thống (mã hệ thống bắt đầu bằng
+// '_' hoặc chữ hoa, ví dụ B_QUIT_REQUESTED = '_QRQ').
 enum {
 	MSG_NEW			= 'new_',
 	MSG_OPEN		= 'open',
@@ -32,9 +43,11 @@ enum {
 static const off_t kMaxFileSize = 64 * 1024 * 1024;
 
 
+// Dựng toàn bộ giao diện: thanh menu, vùng soạn thảo có thanh cuộn,
+// hai hộp thoại Mở/Lưu.
 EditorWindow::EditorWindow(BRect frame)
 	:
-	BWindow(frame, "SimpleEdit", B_DOCUMENT_WINDOW,
+	BWindow(frame, "Haiku Notepad", B_DOCUMENT_WINDOW,
 		B_ASYNCHRONOUS_CONTROLS | B_AUTO_UPDATE_SIZE_LIMITS),
 	fTextView(NULL),
 	fScrollView(NULL),
@@ -47,6 +60,9 @@ EditorWindow::EditorWindow(BRect frame)
 	fModified(false)
 {
 	// --- Thanh menu ---
+	// Mỗi BMenuItem mang theo một BMessage; khi người dùng chọn mục đó (bằng
+	// chuột hoặc phím tắt Cmd+chữ), tin nhắn được gửi tới "target" của mục.
+	// Mặc định target là cửa sổ này.
 	BMenuBar* menuBar = new BMenuBar("menubar");
 
 	BMenu* fileMenu = new BMenu("Tệp");
@@ -91,6 +107,7 @@ EditorWindow::EditorWindow(BRect frame)
 	fTextView->SetInsets(4, 4, 4, 4);
 	fTextView->SetFontAndColor(be_fixed_font);	// font đều nét, hợp để code
 
+	// Bọc text view trong BScrollView để có thanh cuộn dọc và ngang
 	fScrollView = new BScrollView("scroll", fTextView,
 		B_WILL_DRAW | B_FRAME_EVENTS, true, true, B_NO_BORDER);
 
@@ -105,6 +122,9 @@ EditorWindow::EditorWindow(BRect frame)
 	editMenu->SetTargetForItems(fTextView);
 
 	// --- Hộp thoại mở / lưu file ---
+	// Hai hộp thoại được tạo một lần và dùng lại. Khi người dùng chọn file,
+	// hộp thoại gửi B_REFS_RECEIVED (Mở) hoặc B_SAVE_REQUESTED (Lưu) về
+	// cửa sổ này thông qua messenger.
 	BMessenger messenger(this);
 	fOpenPanel = new BFilePanel(B_OPEN_PANEL, &messenger, NULL, B_FILE_NODE,
 		false);
@@ -116,6 +136,8 @@ EditorWindow::EditorWindow(BRect frame)
 }
 
 
+// Menu, text view... là con của cửa sổ nên BWindow tự xoá. Hai hộp thoại
+// không thuộc cửa sổ nên phải tự xoá.
 EditorWindow::~EditorWindow()
 {
 	delete fOpenPanel;
@@ -123,6 +145,8 @@ EditorWindow::~EditorWindow()
 }
 
 
+// Trung tâm xử lý: mọi tin nhắn gửi tới cửa sổ đều đi qua đây.
+// message->what cho biết loại tin nhắn.
 void
 EditorWindow::MessageReceived(BMessage* message)
 {
@@ -187,6 +211,7 @@ EditorWindow::MessageReceived(BMessage* message)
 			break;
 		}
 
+		// Tin nhắn không phải của ta: chuyển cho lớp cha xử lý
 		default:
 			BWindow::MessageReceived(message);
 			break;
@@ -205,6 +230,8 @@ EditorWindow::MenusBeginning()
 }
 
 
+// Haiku gọi hàm này khi người dùng bấm nút đóng, chọn Thoát hoặc Cmd+Q.
+// Trả về false để giữ cửa sổ lại (ví dụ người dùng chọn "Huỷ").
 bool
 EditorWindow::QuitRequested()
 {
@@ -217,6 +244,8 @@ EditorWindow::QuitRequested()
 }
 
 
+// EditorTextView gọi hàm này sau mỗi lần chèn/xoá văn bản. Chỉ cập nhật
+// tiêu đề ở lần thay đổi đầu tiên (thêm dấu * trước tên tài liệu).
 void
 EditorWindow::TextChanged()
 {
@@ -227,6 +256,8 @@ EditorWindow::TextChanged()
 }
 
 
+// Đọc toàn bộ file vào vùng soạn thảo. Trả về B_OK hoặc mã lỗi để nơi gọi
+// hiện thông báo.
 status_t
 EditorWindow::_LoadFile(const entry_ref& ref)
 {
@@ -247,7 +278,8 @@ EditorWindow::_LoadFile(const entry_ref& ref)
 	fTextView->Select(0, 0);
 	fTextView->ScrollToSelection();
 
-	// SetText đã gọi InsertText -> TextChanged, nên đặt lại trạng thái
+	// SetText đã gọi DeleteText -> TextChanged (khi xoá nội dung cũ), nên
+	// đánh dấu "có thay đổi"; tài liệu vừa mở thì chưa đổi gì, đặt lại.
 	fRef = ref;
 	fHasRef = true;
 	fModified = false;
@@ -256,6 +288,8 @@ EditorWindow::_LoadFile(const entry_ref& ref)
 }
 
 
+// Ghi toàn bộ nội dung ra file. B_ERASE_FILE xoá nội dung cũ của file
+// trước khi ghi; B_CREATE_FILE tạo file nếu chưa có.
 status_t
 EditorWindow::_SaveFile(const entry_ref& ref)
 {
@@ -286,6 +320,7 @@ EditorWindow::_SaveFile(const entry_ref& ref)
 }
 
 
+// Lệnh "Lưu": tài liệu đã có file thì ghi đè, chưa có thì hỏi tên.
 void
 EditorWindow::_Save()
 {
@@ -300,6 +335,8 @@ EditorWindow::_Save()
 }
 
 
+// Lệnh "Lưu thành…": chỉ mở hộp thoại. Việc lưu thật diễn ra sau, khi
+// hộp thoại gửi B_SAVE_REQUESTED về MessageReceived().
 void
 EditorWindow::_SaveAs()
 {
@@ -326,6 +363,8 @@ EditorWindow::_ConfirmDiscardChanges()
 		B_WIDTH_AS_USUAL, B_OFFSET_SPACING, B_WARNING_ALERT);
 	alert->SetShortcut(0, B_ESCAPE);
 
+	// Go() hiện hộp thoại và chờ người dùng bấm nút, trả về số thứ tự nút
+	// (0, 1, 2 theo thứ tự truyền vào ở trên). BAlert tự xoá sau khi đóng.
 	switch (alert->Go()) {
 		case 0:		// Huỷ
 			return false;
@@ -348,6 +387,7 @@ EditorWindow::_ConfirmDiscardChanges()
 }
 
 
+// Lệnh "Mới": xoá trắng và quay về tài liệu chưa có tên.
 void
 EditorWindow::_NewDocument()
 {
@@ -359,13 +399,14 @@ EditorWindow::_NewDocument()
 }
 
 
+// Tiêu đề dạng "*ten-file.txt - Haiku Notepad"; dấu * = có thay đổi chưa lưu
 void
 EditorWindow::_UpdateTitle()
 {
 	BString title;
 	if (fModified)
 		title << "*";
-	title << _DocumentName() << " - SimpleEdit";
+	title << _DocumentName() << " - Haiku Notepad";
 	SetTitle(title.String());
 }
 
@@ -377,6 +418,7 @@ EditorWindow::_DocumentName() const
 }
 
 
+// Hiện hộp thoại báo lỗi. strerror() đổi mã lỗi của Haiku thành câu mô tả.
 void
 EditorWindow::_ShowError(const char* action, status_t error)
 {

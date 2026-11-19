@@ -1,4 +1,21 @@
-// EditorTextView.cpp - Vùng soạn thảo của SimpleEdit, có undo/redo nhiều bước
+// EditorTextView.cpp - Vùng soạn thảo của Haiku Notepad, có undo/redo nhiều bước
+//
+// Ý tưởng chính:
+//   - Mọi thay đổi văn bản của BTextView đều đi qua InsertText()/DeleteText().
+//     Ta ghi đè hai hàm này: gọi lớp cha để sửa thật, rồi ghi lại thao tác
+//     (chèn/xoá, ở offset nào, đoạn văn bản nào) vào ngăn xếp fUndoStack.
+//   - Undo = lấy bước trên cùng của fUndoStack, làm ngược từng thao tác
+//     (chèn <-> xoá) theo thứ tự ngược, rồi chuyển bước đó sang fRedoStack.
+//   - Redo = lấy bước trên cùng của fRedoStack, làm lại từng thao tác theo
+//     thứ tự xuôi, rồi trả bước đó về fUndoStack.
+//   - Có thay đổi mới thì xoá fRedoStack (nhánh "tương lai" cũ không còn).
+//
+// "Thao tác người dùng" được xác định bằng KeyDown() (một lần bấm phím) và
+// MessageReceived() (một lệnh: cắt, dán, kéo thả...). Mọi thay đổi xảy ra
+// trong cùng một thao tác được gộp vào một bước undo. Gõ phím liên tiếp còn
+// được gộp tiếp theo từ, để không phải undo từng ký tự.
+//
+// Offset tính bằng byte (văn bản lưu dạng UTF-8), không phải số ký tự.
 #include "EditorTextView.h"
 
 #include <AppDefs.h>

@@ -1,4 +1,4 @@
-// EditorTextView.h - Vùng soạn thảo của SimpleEdit, có undo/redo nhiều bước
+// EditorTextView.h - Vùng soạn thảo của Haiku Notepad, có undo/redo nhiều bước
 #ifndef EDITOR_TEXT_VIEW_H
 #define EDITOR_TEXT_VIEW_H
 
