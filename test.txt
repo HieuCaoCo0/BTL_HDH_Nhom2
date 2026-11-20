@@ -1,0 +1,25 @@
+BAO CAO BAI TAP LON HE DIEU HANH - NHOM 02
+
+De tai: Cai dat va thu nghiem Haiku OS R1/beta5
+
+Ung dung: Trinh soan thao van ban Haiku Notepad (BeAPI / C++)
+
+KET QUA KIEM THU TINH NANG SOAN THAO VA HE THONG:
+
+1. Soan thao van ban thuan tieng Viet chuan UTF-8 hoan chinh.
+
+2. Co che Hoan tac / Lam lai nhieu buoc (Undo/Redo da cap):
+- Ho tro toi da 1000 buoc hoan tac.
+- Tu dong gom nhom thong minh theo tu va ngat dong.
+
+3. Quan ly trang thai tai lieu:
+- Tieu de cua so hien thi dau * khi co thay doi chua luu.
+- Hop thoai SAlert canh bao xac nhan khi dong hoac mo file.
+
+4. Tich hop sau Be File System (BFS):
+- Tu dong gan thuoc tinh MIME "text/plain" khi luu file.
+- Trinh duyet Tracker nhan dien bieu tuong va loai tep chuan.
+
+5. Giao tiep huong su kien BMessage:
+- Moi cua so BWindow van hanh tren mot luong doc lap.
+- Khong bi khoa giao dien (freeze) khi thuc thi lenh I/O.
